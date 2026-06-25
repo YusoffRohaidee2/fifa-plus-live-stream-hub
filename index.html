@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA+ Live Stream Hub</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Video.js CSS -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #030814;
+            --card-bg: rgba(23, 29, 38, 0.6);
+            --accent-color: #38b6ff;
+            --text-color: #ffffff;
+            --text-muted: #a5b1c2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(10, 37, 83, 0.6) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(56, 182, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(81, 45, 168, 0.2) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Header Style (Dikecilkan) */
+        header {
+            background-color: rgba(3, 8, 20, 0.75);
+            backdrop-filter: blur(15px);
+            padding: 10px 4%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-img {
+            height: 35px; /* Kecilkan logo header */
+            object-fit: contain;
+        }
+
+        .hub-title {
+            font-size: 1.15rem; /* Kecilkan saiz tajuk */
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(45deg, #ffffff, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Layout Utama Dashboard (Lebih Padat) */
+        .dashboard-container {
+            max-width: 1150px; /* Kecilkan lebar maksimum container */
+            margin: 15px auto;
+            padding: 0 15px;
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Bahagian Pemain Video */
+        .player-area {
+            flex: 2.4;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-wrapper {
+            background-color: #000;
+            border-radius: 10px; /* Kurangkan border radius */
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        .video-js {
+            width: 100% !important;
+            height: auto;
+            aspect-ratio: 16/9;
+        }
+
+        .now-playing {
+            margin-top: 12px;
+            padding: 6px 2px;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+            align-self: flex-start;
+        }
+
+        .now-playing span {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .now-playing h2 {
+            font-size: 1rem; /* Kecilkan teks status siaran */
+            font-weight: 600;
+            margin-top: 1px;
+        }
+
+        /* Bahagian Menu Saluran Tepi (Lebih Kompak) */
+        .sidebar-area {
+            flex: 1;
+            background-color: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 100px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-title {
+            font-size: 0.9rem; /* Kecilkan tajuk sidebar */
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff3838;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        .channels-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 3px;
+        }
+
+        /* Custom Scrollbar */
+        .channels-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .channels-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .channels-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .channels-list::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        .channel-item {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px 12px; /* Kecilkan padding kad saluran */
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .channel-item:hover {
+            border-color: var(--accent-color);
+            background-color: rgba(56, 182, 255, 0.08);
+            transform: translateX(2px);
+        }
+
+        .channel-item.active {
+            border-color: var(--accent-color);
+            background-color: rgba(56, 182, 255, 0.15);
+            box-shadow: 0 0 10px rgba(56, 182, 255, 0.1);
+        }
+
+        .mini-logo {
+            height: 20px; /* Kecilkan logo dalam senarai */
+            object-fit: contain;
+        }
+
+        .channel-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .channel-title-text {
+            font-weight: 600;
+            font-size: 0.88rem; /* Kecilkan teks nama saluran */
+            letter-spacing: 0.2px;
+        }
+
+        /* Footer Bersih (Hanya Hak Cipta Ringkas) */
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            padding: 15px 0;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Responsif Skrin */
+        @media (max-width: 850px) {
+            .dashboard-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .sidebar-area {
+                max-height: none;
+            }
+            header {
+                text-align: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <div class="logo-container">
+            <img class="logo-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png" alt="FIFA+ Logo">
+            <div class="hub-title">FIFA+ Live Stream Hub</div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        
+        <!-- Kiri: Player Area -->
+        <div class="player-area">
+            <div class="player-wrapper">
+                <video id="fifa-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" width="640" height="360">
+                    <p class="vjs-no-js">Sila aktifkan JavaScript untuk menonton.</p>
+                </video>
+            </div>
+            <div class="now-playing">
+                <span>SALURAN AKTIF</span>
+                <h2 id="current-stream-title">United States (1)</h2>
+            </div>
+        </div>
+
+        <!-- Kanan: Sidebar Channels -->
+        <div class="sidebar-area">
+            <div class="sidebar-title">
+                <span class="live-dot"></span> SALURAN SIARAN
+            </div>
+            <div class="channels-list" id="channels-container">
+                <!-- Senarai saluran m3u8 ditapis dimasukkan di sini -->
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 FIFA+ Live Stream Hub.</p>
+    </footer>
+
+    <!-- Video.js Scripts -->
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script>
+        // Data pautan bersih dan susunan mengikut permintaan anda[cite: 1]
+        const streamData = [
+            { id: 1, title: "United States (1)", url: "https://d2w9q46ikgrcwx.cloudfront.net/v1/sysdata_s_p_a_fifa_7/samsungheadend_us/latest/main/hls/playlist.m3u8" },
+            { id: 2, title: "United States (2)", url: "https://d2w9q46ikgrcwx.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-of5cbk3sav3w5/v1/sysdata_s_p_a_fifa_7/samsungheadend_us/latest/main/hls/playlist.m3u8" },
+            { id: 3, title: "United Kingdom (1)", url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8" },
+            { id: 4, title: "United Kingdom (2)", url: "https://ba3e2e93.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/U2Ftc3VuZy1nYl9GSUZBUGx1c0VuZ2xpc2hfSExT/playlist.m3u8" }
+        ];
+
+        const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png";
+        
+        // Initialize Video.js Player
+        const player = videojs('fifa-player', {
+            fluid: true,
+            autoplay: false,
+            controls: true
+        });
+
+        const channelsContainer = document.getElementById('channels-container');
+        const currentTitleEl = document.getElementById('current-stream-title');
+
+        // Membina elemen senarai secara dinamik
+        function renderSidebar() {
+            streamData.forEach((stream, index) => {
+                const item = document.createElement('div');
+                item.classList.add('channel-item');
+                if(index === 0) item.classList.add('active');
+
+                item.innerHTML = `
+                    <img class="mini-logo" src="${logoUrl}" alt="FIFA+">
+                    <div class="channel-info">
+                        <div class="channel-title-text">${stream.title}</div>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.channel-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    playStream(stream.url, stream.title);
+                });
+
+                channelsContainer.appendChild(item);
+            });
+        }
+
+        function playStream(url, displayTitle) {
+            currentTitleEl.textContent = displayTitle;
+            player.src({
+                src: url,
+                type: 'application/x-mpegURL'
+            });
+            player.play().catch(err => console.log("Sila klik ikon main manual pada skrin"));
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderSidebar();
+            // Mainkan pautan United States (1) secara automatik pada mulanya
+            playStream(streamData[0].url, streamData[0].title);
+        });
+    </script>
+</body>
+</html>
